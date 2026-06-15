@@ -71,3 +71,29 @@ Docs: https://ai.google.dev/gemini-api/docs/get-started/python
 ### Questions I still have
 
 - When should we switch from `google-generativeai` to the newer `google.genai` SDK?
+
+## Week 6 — Multi-Step Execution
+
+### Multi-step flow in `/test-gemini`
+
+The `/test-gemini` endpoint now runs two Gemini calls in sequence instead of one:
+
+1. **Step 1 — Outline:** Asks Gemini to produce a short 3-bullet outline about large language models. The result is stored in the `outline` variable and logged server-side (not returned to the client).
+2. **Step 2 — Expand:** Sends a second prompt that includes the outline and asks Gemini to write one full paragraph based on it. Only this final paragraph is returned as JSON.
+
+### Why the steps are separated
+
+Splitting the work into outline → expand gives each step a single job. Step 1 focuses on structure; Step 2 focuses on writing. Later steps depend on earlier output — the paragraph in Step 2 is built from the outline in Step 1. This same pattern is used in production systems for RAG, validation, and refinement.
+
+### Example response
+
+```json
+{"response": "Large language models are ..."}
+```
+
+The client still receives one JSON response, but the backend performed two sequential AI calls to produce it.
+
+### Challenges / open questions
+
+- Each extra step adds latency and API cost — how do you decide when multi-step is worth it?
+- Should intermediate steps be cached or stored for debugging in production?

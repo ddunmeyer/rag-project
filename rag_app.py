@@ -37,9 +37,25 @@ async def health():
 async def test_gemini():
     try:
         model = genai.GenerativeModel("gemini-2.5-flash")
-        prompt = "Explain what a large language model is in one paragraph."
-        response = model.generate_content(prompt)
-        return {"response": response.text}
+        topic = "large language models"
+
+        # Step 1: Generate a short outline
+        outline_prompt = (
+            f"Create a short 3-bullet outline explaining {topic}. "
+            "Keep each bullet to one sentence."
+        )
+        outline_response = model.generate_content(outline_prompt)
+        outline = outline_response.text
+        print(f"Step 1 complete — outline ({len(outline)} chars): {outline[:120]}...")
+
+        # Step 2: Expand the outline into a full paragraph
+        expand_prompt = (
+            f"Using this outline as your guide, write one clear paragraph "
+            f"explaining {topic}:\n\n{outline}"
+        )
+        final_response = model.generate_content(expand_prompt)
+
+        return {"response": final_response.text}
     except Exception as e:
         raise HTTPException(
             status_code=500,
