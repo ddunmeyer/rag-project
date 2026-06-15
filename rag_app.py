@@ -20,7 +20,10 @@ print(f"✅ GEMINI API Key loaded (starts with: {GEMINI_API_KEY[:8]}...)")
 import google.generativeai as genai
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+
+# Single model for all endpoints (gemini-1.5-flash is no longer available on the current API)
+GEMINI_MODEL = "gemini-2.5-flash"
+model = genai.GenerativeModel(GEMINI_MODEL)
 
 # ===================== CREATE FASTAPI APP =====================
 app = FastAPI(title="RAG App with Gemini")
@@ -61,8 +64,7 @@ AI response to review:
 {original_answer}
 """
 
-    review_model = genai.GenerativeModel("gemini-2.5-flash")
-    review_response = review_model.generate_content(review_prompt)
+    review_response = model.generate_content(review_prompt)
 
     return review_response.text
 
@@ -79,7 +81,6 @@ async def health():
 @app.get("/test-gemini")
 async def test_gemini():
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
         topic = "large language models"
 
         # Step 1: Generate a short outline
@@ -120,8 +121,7 @@ async def generate(prompt: str):
 def query_ai(request: QueryRequest):
     validate_user_input(request.question)
 
-    primary_model = genai.GenerativeModel("gemini-2.5-flash")
-    primary_response = primary_model.generate_content(request.question)
+    primary_response = model.generate_content(request.question)
 
     raw_answer = primary_response.text
 
