@@ -97,3 +97,38 @@ The client still receives one JSON response, but the backend performed two seque
 
 - Each extra step adds latency and API cost — how do you decide when multi-step is worth it?
 - Should intermediate steps be cached or stored for debugging in production?
+
+## Week 7 — Validating User Input and AI Output
+
+### What `/query` does
+
+`POST /query` accepts a user question, validates it, generates an answer with Gemini, validates the raw output, then sends that answer to a second model call for review before returning the final result.
+
+Example request body:
+
+```json
+{"question": "What is retrieval augmented generation?"}
+```
+
+Example response:
+
+```json
+{
+  "question": "What is retrieval augmented generation?",
+  "answer": "..."
+}
+```
+
+### Why input validation exists
+
+User input is checked **before** any AI call. Empty, too-short, or too-long questions are rejected with a clear HTTP 400 error. This prevents wasted API calls, reduces cost, and blocks obviously bad input early.
+
+### Why output validation exists
+
+The first model's raw answer is checked **before** it reaches the user. Empty or too-short responses trigger an HTTP 500 error so the API never returns useless output.
+
+### Why a second AI model reviews responses
+
+Instead of trusting the first answer, a second Gemini call reviews and improves it (or leaves it unchanged if already good). This mirrors production patterns where one model generates and another validates or refines — a foundation for guardrails and safer GenAI systems.
+
+Note: The course examples use `gemini-pro`; this project uses `gemini-2.5-flash` because it is available on the current Gemini API.
