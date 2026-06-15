@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 # ===================== SECURELY LOAD GEMINI API KEY =====================
 load_dotenv()
@@ -30,7 +30,22 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "model": "gemini-1.5-flash"}
+    return {"status": "ok"}
+
+
+@app.get("/test-gemini")
+async def test_gemini():
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        prompt = "Explain what a large language model is in one paragraph."
+        response = model.generate_content(prompt)
+        return {"response": response.text}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Gemini API call failed: {str(e)}",
+        )
+
 
 # Example endpoint to test Gemini
 @app.post("/generate")
