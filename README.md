@@ -132,3 +132,46 @@ The first model's raw answer is checked **before** it reaches the user. Empty or
 Instead of trusting the first answer, a second Gemini call reviews and improves it (or leaves it unchanged if already good). This mirrors production patterns where one model generates and another validates or refines — a foundation for guardrails and safer GenAI systems.
 
 Note: The course examples use `gemini-pro`; this project uses `gemini-2.5-flash` because it is available on the current Gemini API.
+
+## Week 8 — User Interface (Figma)
+
+### Figma prototype
+
+**Link:** https://www.figma.com/make/94v3bGAfvMLxjtPl49QSTR/Student-Portal-User-Interface?fullscreen=1&t=KGGOxvpFhFY0WEAG-1&code-node-id=0-9
+
+The prototype includes five connected screens for a **RAG Student Portal** — a front-end concept for the backend built in Weeks 5–7.
+
+### Screens
+
+| Screen | Purpose |
+|--------|---------|
+| **Login** | Authenticates users before they access the portal. Includes email, password, login button, and forgot-password link. |
+| **Dashboard** | Home screen after login. Shows welcome message, server/model status, and navigation to Q&A, Settings, and Report. |
+| **Edit Settings** | Lets users update preferences (display name, theme). Email is read-only. No API key field — keys stay server-side. |
+| **Report** | Displays usage summary: questions asked, successful responses, validation errors, and a recent activity list. |
+| **Q&A** | Main interaction screen. User enters a question, submits it, and sees the AI answer. Input rules match the backend (5–500 characters). |
+
+### How the UI connects to the backend
+
+| UI screen | Backend endpoint |
+|-----------|------------------|
+| Dashboard (status card) | `GET /health` → `{"status":"ok"}` |
+| Q&A (submit question) | `POST /query` → `{"question": "...", "answer": "..."}` |
+| Report (activity data) | Derived from `/query` usage (future integration) |
+
+### Secure-by-design decisions
+
+- **No API key in the UI** — Gemini keys remain in `.env` on the server only
+- **Login gate** — users must authenticate before accessing Dashboard, Q&A, or Report
+- **Input validation on Q&A** — UI shows the same error messages the backend returns (empty, too short, too long)
+- **Report shows metadata only** — questions and timestamps, not secrets or raw API responses
+
+### What I learned
+
+- How to translate a backend API into a user-facing flow
+- Secure-by-design starts in the wireframe — sensitive config never belongs on the client
+- Prototyping in Figma helps clarify navigation and error states before writing front-end code
+
+### Questions I still have
+
+- When we build the real front-end, should Q&A call `/query` directly or go through an auth layer first?
